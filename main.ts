@@ -56,6 +56,7 @@ type Player = {
 };
 
 type State = {
+  mode: 'edit' | 'play',
   tiles: (Tile|null)[][][],
   width: number,
   height: number,
@@ -185,6 +186,7 @@ function strokeRect(x,y,w,h,strokeStyle,lineWidth) {
 
 function generateDefaultState(): State {
   const s = {}
+  s.mode = 'editor';
   s.width = 5;
   s.height = 5;
   s.depth = 1;
@@ -207,10 +209,6 @@ function generateDefaultState(): State {
     s.tiles.push(plane);
   }
   return s;
-}
-
-function cloneState(state: State): State {
-  return JSON.parse(JSON.stringify(state));
 }
 
 const state = generateDefaultState();
