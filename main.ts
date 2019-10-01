@@ -1,7 +1,5 @@
-const canvas = document.getElementById('canvas');
-const context = canvas.getContext('2d');
 const tempCanvas = document.createElement('canvas');
-tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+tempCanvas.width = 640; tempCanvas.height = 480;
 const tempContext = tempCanvas.getContext('2d');
 const GRID_SIZE = 48;
 const TILE_STROKE_WIDTH = 4;
@@ -58,7 +56,7 @@ type Player = {
 };
 
 type State = {
-  tiles: (Tile|void)[][][],
+  tiles: (Tile|null)[][][],
   width: number,
   height: number,
   depth: number,
@@ -146,7 +144,7 @@ function drawPlayer(player: Player) {
   }
 }
 
-function drawLayer(z: number, currentDepth: number) {
+function drawLayer(context, z: number, currentDepth: number) {
   context.save();
   context.globalAlpha = z < currentDepth ? 0.15 : (z > currentDepth ? 0.3 : 1.0);
   context.transform(1,0,-0.3,1,225,100);
@@ -154,7 +152,8 @@ function drawLayer(z: number, currentDepth: number) {
   context.restore();
 }
 
-function drawState(state: State) {
+function drawState(canvas, state: State) {
+  const context = canvas.getContext('2d');
   context.fillStyle = 'black';
   context.fillRect(0,0,canvas.width,canvas.height);
   for (let z = 0; z < state.depth; z++) {
@@ -164,11 +163,13 @@ function drawState(state: State) {
       drawPlayer(state.player);
       for (const row of state.tiles[z]) {
         for (const tile of row) {
-          drawTile(tile);
+          if (tile != null) {
+            drawTile(tile);
+          }
         }
       }
     }
-    drawLayer(z,state.player.z);
+    drawLayer(context,z,state.player.z);
   }
 }
 
@@ -182,57 +183,40 @@ function strokeRect(x,y,w,h,strokeStyle,lineWidth) {
   tempContext.restore();
 }
 
-const state = {
-  tiles:[
-    [[
-      {x:3,y:5,uses:0,walkable:0,color:'G',direction:'R'},
-      {x:4,y:5,uses:0,walkable:0,color:'Y',charge:'-'},
-      {x:5,y:5,uses:0,walkable:0,color:'B',on:false},
-      {x:6,y:5,uses:0,walkable:0,color:'O',on:false},
-    ]],
-    [[
-      {x:3,y:1,uses:0,walkable:0,color:'G',direction:'D'},
-      {x:3,y:2,uses:0,walkable:0,color:'G',direction:'L'},
-      {x:3,y:3,uses:0,walkable:0,color:'G',direction:'R'},
-      {x:4,y:0,uses:0,walkable:0,color:'Y',charge:'+'},
-    ]],
-    [[
-      {x:0,y:0,uses:0,walkable:0,color:'W',on:false},
-      {x:1,y:0,uses:0,walkable:0,color:'W',on:true},
-      {x:6,y:0,uses:0,walkable:0,color:'O',on:false},
-    ]],
-    [[
-      {x:3,y:1,uses:0,walkable:0,color:'W',on:false},
-      {x:3,y:2,uses:0,walkable:0,color:'W',on:true},
-      {x:3,y:3,uses:0,walkable:0,color:'R',on:false},
-      {x:4,y:4,uses:0,walkable:0,color:'G',direction:'U'},
-      {x:4,y:5,uses:0,walkable:0,color:'G',direction:'D'},
-      {x:4,y:6,uses:0,walkable:0,color:'B',on:false},
-      {x:4,y:1,uses:0,walkable:0,color:'O',on:false},
-      {x:1,y:1,uses:0,walkable:0,color:'S',direction:'U'},
-      {x:2,y:1,uses:0,walkable:0,color:'S',direction:'D'},
-    ]],
-    [[
-    ]],
-  ],
-  width:5,
-  height:5,
-  depth:5,
-  player: {
-    x: 3,
-    y: 0,
-    z: 2,
-    blueUses: 1,
+function generateDefaultState(): State {
+  const s = {}
+  s.width = 5;
+  s.height = 5;
+  s.depth = 1;
+  s.player = {
+    x: 2,
+    y: 2,
+    z: 0,
+    blueUses: 0,
+  };
+  s.tiles = []
+  for (let z = 0; z < s.depth; z++) {
+    const plane = [];
+    for (let y = 0; y < s.height; y++) {
+      const row = [];
+        for (let x = 0; x < s.width; x++) {
+          row.push(null);
+        }
+      plane.push(row);
+    }
+    s.tiles.push(plane);
   }
+  return s;
 }
 
+function cloneState(state: State): State {
+  return JSON.parse(JSON.stringify(state));
+}
 
-drawState(state);
-setTimeout(() => setInterval(() => {
-  state.player.z++;
-  drawState(state);
-}, 2000), 0);
-setTimeout(() => setInterval(() => {
-  state.player.z--;
-  drawState(state);
-}, 2000), 1000);
+const state = generateDefaultState();
+
+export {
+  generateDefaultState,
+  cloneState,
+  drawState
+};

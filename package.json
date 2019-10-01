@@ -1,5 +1,13 @@
 {
   "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
     "typescript": "^3.6.3"
+  },
+  "dependencies": {
+    "main": "^1000.0.1",
+    "react": "^16.10.1",
+    "react-dom": "^16.10.1"
   }
 }
