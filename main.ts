@@ -71,7 +71,7 @@ function drawTile(tile: Tile, x: number, y: number) {
   const colors = {
     'W': {
       true: '#FFFFFF',
-      false: '#888888',
+      false: '#666',
     },
     'R': '#C41E3A',
     'G': '#009E60',
@@ -81,14 +81,26 @@ function drawTile(tile: Tile, x: number, y: number) {
     'S': '#614878',
   }; 
   const color = tile.color == 'W' ? colors[tile.color][tile.on] : colors[tile.color];
-  strokeRect(
-    x*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
-    y*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
-    GRID_SIZE-3*TILE_STROKE_WIDTH,
-    GRID_SIZE-3*TILE_STROKE_WIDTH,
-    color,
-    TILE_STROKE_WIDTH,
-  );
+  if (tile.walkable) {
+    strokeRect(
+      x*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
+      y*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
+      GRID_SIZE-3*TILE_STROKE_WIDTH,
+      GRID_SIZE-3*TILE_STROKE_WIDTH,
+      color,
+      TILE_STROKE_WIDTH,
+    );
+  } else {
+    tempContext.strokeStyle = color;
+    tempContext.lineWidth = TILE_STROKE_WIDTH/Math.sqrt(2);
+    tempContext.beginPath();
+    tempContext.moveTo((x+0.5)*GRID_SIZE, (y+0.1)*GRID_SIZE);
+    tempContext.lineTo((x+0.9)*GRID_SIZE, (y+0.5)*GRID_SIZE);
+    tempContext.lineTo((x+0.5)*GRID_SIZE, (y+0.9)*GRID_SIZE);
+    tempContext.lineTo((x+0.1)*GRID_SIZE, (y+0.5)*GRID_SIZE);
+    tempContext.closePath();
+    tempContext.stroke();
+  }
   if (tile.color == 'G') {
     const arrows = {
       'U': '🡅',
@@ -129,7 +141,7 @@ function drawBorder(width: number, height: number) {
     BORDER_STROKE_WIDTH/2,
     width*GRID_SIZE-BORDER_STROKE_WIDTH/2,
     height*GRID_SIZE-BORDER_STROKE_WIDTH/2,
-    '#666',
+    '#444',
     BORDER_STROKE_WIDTH,
   );
 }

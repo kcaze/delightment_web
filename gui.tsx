@@ -53,7 +53,9 @@ class EditorGui extends React.Component {
         if (tile != null && tile.color == 'G')
           tile.direction = 'L';
         if (tile != null && tile.color == 'Y')
-          tile.charge = '+';
+          tile.charge = '-';
+        if (tile != null && tile.color == 'W')
+          tile.on = false;
         this.setState({tiles});
       } else {
         this.setState({
@@ -67,7 +69,9 @@ class EditorGui extends React.Component {
         if (tile != null && tile.color == 'G')
           tile.direction = 'R';
         if (tile != null && tile.color == 'Y')
-          tile.charge = '-';
+          tile.charge = '+';
+        if (tile != null && tile.color == 'W')
+          tile.on = true;
         this.setState({tiles});
       } else {
         this.setState({
@@ -75,11 +79,17 @@ class EditorGui extends React.Component {
         });
       }
     } else if (e.code == 'ArrowDown') {
-      if (e.ctrlKey) {
+      if (e.ctrlKey && e.shiftKey) {
+        const player = clone(this.state.player);
+        player.blueUses = Math.max(0, player.blueUses-1);
+        this.setState({player});
+      } else if (e.ctrlKey) {
         const tiles = clone(this.state.tiles);
         const tile = tiles[cursor.z][cursor.y][cursor.x];
         if (tile != null && tile.color == 'G')
           tile.direction = 'D';
+        if (tile != null && tile.color == 'W')
+          tile.walkable = false;
         this.setState({tiles});
       } else if (e.shiftKey) {
         const tiles = clone(this.state.tiles);
@@ -93,11 +103,17 @@ class EditorGui extends React.Component {
         });
       }
     } else if (e.code == 'ArrowUp') {
-      if (e.ctrlKey) {
+      if (e.ctrlKey && e.shiftKey) {
+        const player = clone(this.state.player);
+        player.blueUses = player.blueUses + 1;
+        this.setState({player});
+      } else if (e.ctrlKey) {
         const tiles = clone(this.state.tiles);
         const tile = tiles[cursor.z][cursor.y][cursor.x];
         if (tile != null && tile.color == 'G')
           tile.direction = 'U';
+        if (tile != null && tile.color == 'W')
+          tile.walkable = true;
         this.setState({tiles});
       } else if (e.shiftKey) {
         const tiles = clone(this.state.tiles);
