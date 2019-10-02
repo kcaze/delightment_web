@@ -9,6 +9,7 @@ function clone(obj: Object): Object {
 class EditorGui extends React.Component {
   constructor() {
     this.state = generateDefaultState();
+    document.addEventListener('keydown', this.onKeyDown);
   }
 
   componentDidMount() {
@@ -22,13 +23,58 @@ class EditorGui extends React.Component {
   updateCanvas() {
     drawState(this.refs.canvas, this.state);
   }
+
+  onKeyDown = (e) => {
+    if (this.state.mode == 'edit') {
+      this.onEditKeyDown(e);
+    } else {
+      this.onPlayKeyDown(e);
+    }
+  };
+
+  onEditKeyDown = (e) => {
+    if (e.key == 'ArrowLeft') {
+      this.setState({
+        cursor: {...this.state.cursor, x:Math.max(0,this.state.cursor.x-1)}
+      });
+    } else if (e.key == 'ArrowRight') {
+      this.setState({
+        cursor: {...this.state.cursor, x:Math.min(this.state.width-1,this.state.cursor.x+1)}
+      });
+    } else if (e.key == 'ArrowDown') {
+      this.setState({
+        cursor: {...this.state.cursor, y:Math.min(this.state.height-1,this.state.cursor.y+1)}
+      });
+    } else if (e.key == 'ArrowUp') {
+      this.setState({
+        cursor: {...this.state.cursor, y:Math.max(0,this.state.cursor.y-1)}
+      });
+    } else if (e.key == 'PageUp') {
+      this.setState({
+        cursor: {...this.state.cursor, z:Math.min(this.state.depth-1,this.state.cursor.z+1)}
+      });
+    } else if (e.key == 'PageDown') {
+      this.setState({
+        cursor: {...this.state.cursor, z:Math.max(0,this.state.cursor.z-1)}
+      });
+    }
+    console.log(e);
+  };
+
+  onPlayKeyDown = (e) => {
+  };
   
   render() {
     const {width, height, depth, mode} = this.state;
-    console.log(width, height, depth, JSON.stringify(this.state.tiles, null, 2);
     return <div>
       <canvas ref="canvas" width="640" height="480"></canvas>
-      <div>Mode: {mode == 'edit' ? "Edit" : "Play"}</div>
+
+      <div>
+        <button onClick={this.shareState}>Share</button>
+      </div>
+      <div>
+        Mode: {mode == 'edit' ? "Edit" : "Play"}
+      </div>
       <form>
         <button type="submit" disabled style={{display: 'none'}} aria-hidden="true"></button>
         <input type="number" min="1" max="9" onChange={this.updateWidth} value={width}/>
@@ -37,6 +83,11 @@ class EditorGui extends React.Component {
       </form>
     </div>;
   }
+
+  shareState = () => {
+    const encodedState = btoa(JSON.stringify(this.state));
+    console.log(encodedState);
+  };
 
   updateWidth = (e) => {
     if (e.target.value >= 1 && e.target.value <= 9) {

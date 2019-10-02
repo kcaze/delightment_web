@@ -57,6 +57,11 @@ type Player = {
 
 type State = {
   mode: 'edit' | 'play',
+  cursor: {
+    x: number,
+    y: number,
+    z: number
+  },
   tiles: (Tile|null)[][][],
   width: number,
   height: number,
@@ -125,6 +130,18 @@ function drawBorder(width: number, height: number) {
   );
 }
 
+function drawCursor(cursor: {x: number, y:number}) {
+  tempContext.fillStyle = 'rgba(255,255,255,0.5)';
+  tempContext.beginPath();
+  tempContext.rect(
+    cursor.x*GRID_SIZE,
+    cursor.y*GRID_SIZE,
+    GRID_SIZE,
+    GRID_SIZE
+  );
+  tempContext.fill();
+}
+
 function drawPlayer(player: Player) {
   tempContext.fillStyle = player.blueUses == 0 ? 'white' : '#0051BA';
   tempContext.beginPath();
@@ -145,11 +162,16 @@ function drawPlayer(player: Player) {
   }
 }
 
-function drawLayer(context, z: number, currentDepth: number) {
+function drawLayer(context, z: number, currentDepth: number, isEditMode) {
   context.save();
   context.globalAlpha = z < currentDepth ? 0.15 : (z > currentDepth ? 0.3 : 1.0);
-  context.transform(1,0,-0.3,1,225,100);
-  context.drawImage(tempCanvas,-0.3*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
+  if (!isEditMode) {
+    context.transform(1,0,-0.3,1,225,100);
+    context.drawImage(tempCanvas,-0.3*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
+  } else {
+    context.transform(1,0,0,1,150,100);
+    context.drawImage(tempCanvas,0.5*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
+  }
   context.restore();
 }
 
@@ -170,7 +192,10 @@ function drawState(canvas, state: State) {
         }
       }
     }
-    drawLayer(context,z,state.player.z);
+    if (z == state.cursor.z) {
+      drawCursor(state.cursor);
+    }
+    drawLayer(context,z,state.mode == 'edit' ? state.cursor.z : state.player.z,state.mode == 'edit');
   }
 }
 
@@ -186,7 +211,7 @@ function strokeRect(x,y,w,h,strokeStyle,lineWidth) {
 
 function generateDefaultState(): State {
   const s = {}
-  s.mode = 'editor';
+  s.mode = 'edit';
   s.width = 5;
   s.height = 5;
   s.depth = 1;
@@ -195,6 +220,11 @@ function generateDefaultState(): State {
     y: 2,
     z: 0,
     blueUses: 0,
+  };
+  s.cursor = {
+    x: 0,
+    y: 0,
+    z: 0,
   };
   s.tiles = []
   for (let z = 0; z < s.depth; z++) {
