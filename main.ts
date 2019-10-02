@@ -6,9 +6,6 @@ const TILE_STROKE_WIDTH = 4;
 const BORDER_STROKE_WIDTH = 3;
 
 type BaseTile = {
-  x: number, 
-  y: number,
-  z: number,
   uses: number,
   walkable: boolean,
 };
@@ -70,7 +67,7 @@ type State = {
 };
 
 
-function drawTile(tile: Tile) {
+function drawTile(tile: Tile, x: number, y: number) {
   const colors = {
     'W': {
       true: '#FFFFFF',
@@ -85,8 +82,8 @@ function drawTile(tile: Tile) {
   }; 
   const color = tile.color == 'W' ? colors[tile.color][tile.on] : colors[tile.color];
   strokeRect(
-    tile.x*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
-    tile.y*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
+    x*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
+    y*GRID_SIZE+1.5*TILE_STROKE_WIDTH,
     GRID_SIZE-3*TILE_STROKE_WIDTH,
     GRID_SIZE-3*TILE_STROKE_WIDTH,
     color,
@@ -103,19 +100,26 @@ function drawTile(tile: Tile) {
     tempContext.fillStyle = color
     tempContext.textBaseline='middle';
     tempContext.textAlign='center';
-    tempContext.fillText(arrows[tile.direction],(tile.x+0.35)*GRID_SIZE,(tile.y+0.65)*GRID_SIZE);
+    tempContext.fillText(arrows[tile.direction],(x+0.35)*GRID_SIZE,(y+0.65)*GRID_SIZE);
   } else if (tile.color == 'Y') {
     tempContext.font = `${GRID_SIZE/2}px sans-serif`;
     tempContext.fillStyle = color;
     tempContext.textBaseline='middle';
     tempContext.textAlign='center';
-    tempContext.fillText(tile.charge, (tile.x+0.35)*GRID_SIZE,(tile.y+0.65)*GRID_SIZE);
+    tempContext.fillText(tile.charge, (x+0.35)*GRID_SIZE,(y+0.65)*GRID_SIZE);
   } else if (tile.color == 'S') {
     tempContext.font = `${0.3*GRID_SIZE}px sans-serif`;
     tempContext.fillStyle = color;
     tempContext.textBaseline='middle';
     tempContext.textAlign='center';
-    tempContext.fillText(tile.direction == 'D' ? '⏬' : '⏫', (tile.x+0.35)*GRID_SIZE,(tile.y+0.65)*GRID_SIZE);
+    tempContext.fillText(tile.direction == 'D' ? '⏬' : '⏫', (x+0.35)*GRID_SIZE,(y+0.65)*GRID_SIZE);
+  }
+  if (tile.uses > 0) {
+    tempContext.font = `${GRID_SIZE/3}px sans-serif`;
+    tempContext.fillStyle = color;
+    tempContext.textBaseline='middle';
+    tempContext.textAlign='center';
+    tempContext.fillText(tile.uses.toString(), (x+0.70)*GRID_SIZE,(y+0.70)*GRID_SIZE);
   }
 }
 
@@ -164,11 +168,12 @@ function drawPlayer(player: Player) {
 
 function drawLayer(context, z: number, currentDepth: number, isEditMode) {
   context.save();
-  context.globalAlpha = z < currentDepth ? 0.15 : (z > currentDepth ? 0.3 : 1.0);
   if (!isEditMode) {
+    context.globalAlpha = z < currentDepth ? 0.15 : (z > currentDepth ? 0.3 : 1.0);
     context.transform(1,0,-0.3,1,225,100);
     context.drawImage(tempCanvas,-0.3*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
   } else {
+    context.globalAlpha = z != currentDepth ? 0.1 : 1.0);
     context.transform(1,0,0,1,150,100);
     context.drawImage(tempCanvas,0.5*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
   }
@@ -182,12 +187,14 @@ function drawState(canvas, state: State) {
   for (let z = 0; z < state.depth; z++) {
     tempContext.clearRect(0,0,tempCanvas.width,tempCanvas.height);
     drawBorder(state.width, state.height);
-    if (z == state.player.z) {
-      drawPlayer(state.player);
-      for (const row of state.tiles[z]) {
-        for (const tile of row) {
-          if (tile != null) {
-            drawTile(tile);
+    if (state.mode == 'edit' || z == state.player.z) {
+      if (z == state.player.z) {
+        drawPlayer(state.player);
+      }
+      for (let y = 0; y < state.tiles[z].length; y++) {
+        for (let x = 0; x < state.tiles[z][y].length; x++) {
+          if (state.tiles[z][y][x] != null) {
+            drawTile(state.tiles[z][y][x],x,y);
           }
         }
       }

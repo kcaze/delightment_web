@@ -6,6 +6,18 @@ function clone(obj: Object): Object {
   return JSON.parse(JSON.stringify(obj));
 }
 
+function deleteTile(tiles, cursor) {
+  const tile = tiles[cursor.z][cursor.y][cursor.x];
+  tiles[cursor.z][cursor.y][cursor.x] = null;
+  if (tile && tile.color == 'S') {
+    if (tile.direction == 'U') {
+      tiles[cursor.z+1][cursor.y][cursor.x] = null;
+    } else {
+      tiles[cursor.z-1][cursor.y][cursor.x] = null;
+    }
+  }
+}
+
 class EditorGui extends React.Component {
   constructor() {
     this.state = generateDefaultState();
@@ -33,30 +45,178 @@ class EditorGui extends React.Component {
   };
 
   onEditKeyDown = (e) => {
-    if (e.key == 'ArrowLeft') {
+    const {cursor} = this.state;
+    if (e.code == 'ArrowLeft') {
+      if (e.ctrlKey) {
+        const tiles = clone(this.state.tiles);
+        const tile = tiles[cursor.z][cursor.y][cursor.x];
+        if (tile != null && tile.color == 'G')
+          tile.direction = 'L';
+        if (tile != null && tile.color == 'Y')
+          tile.charge = '+';
+        this.setState({tiles});
+      } else {
+        this.setState({
+          cursor: {...cursor, x:Math.max(0,cursor.x-1)}
+        });
+      }
+    } else if (e.code == 'ArrowRight') {
+      if (e.ctrlKey) {
+        const tiles = clone(this.state.tiles);
+        const tile = tiles[cursor.z][cursor.y][cursor.x];
+        if (tile != null && tile.color == 'G')
+          tile.direction = 'R';
+        if (tile != null && tile.color == 'Y')
+          tile.charge = '-';
+        this.setState({tiles});
+      } else {
+        this.setState({
+          cursor: {...cursor, x:Math.min(this.state.width-1,cursor.x+1)}
+        });
+      }
+    } else if (e.code == 'ArrowDown') {
+      if (e.ctrlKey) {
+        const tiles = clone(this.state.tiles);
+        const tile = tiles[cursor.z][cursor.y][cursor.x];
+        if (tile != null && tile.color == 'G')
+          tile.direction = 'D';
+        this.setState({tiles});
+      } else if (e.shiftKey) {
+        const tiles = clone(this.state.tiles);
+        const tile = tiles[cursor.z][cursor.y][cursor.x];
+        if (tiles[cursor.z][cursor.y][cursor.x] != null)
+          tile.uses = Math.max(0, tile.uses-1);
+        this.setState({tiles});
+      } else {
+        this.setState({
+          cursor: {...cursor, y:Math.min(this.state.height-1,cursor.y+1)}
+        });
+      }
+    } else if (e.code == 'ArrowUp') {
+      if (e.ctrlKey) {
+        const tiles = clone(this.state.tiles);
+        const tile = tiles[cursor.z][cursor.y][cursor.x];
+        if (tile != null && tile.color == 'G')
+          tile.direction = 'U';
+        this.setState({tiles});
+      } else if (e.shiftKey) {
+        const tiles = clone(this.state.tiles);
+        const tile = tiles[cursor.z][cursor.y][cursor.x];
+        if (tiles[cursor.z][cursor.y][cursor.x] != null)
+          tile.uses = tile.uses+1;
+        this.setState({tiles});
+      } else {
+        this.setState({
+          cursor: {...cursor, y:Math.max(0,cursor.y-1)}
+        });
+      }
+    } else if (e.code == 'PageUp') {
       this.setState({
-        cursor: {...this.state.cursor, x:Math.max(0,this.state.cursor.x-1)}
+        cursor: {...cursor, z:Math.min(this.state.depth-1,cursor.z+1)}
       });
-    } else if (e.key == 'ArrowRight') {
+    } else if (e.code == 'PageDown') {
       this.setState({
-        cursor: {...this.state.cursor, x:Math.min(this.state.width-1,this.state.cursor.x+1)}
+        cursor: {...cursor, z:Math.max(0,cursor.z-1)}
       });
-    } else if (e.key == 'ArrowDown') {
-      this.setState({
-        cursor: {...this.state.cursor, y:Math.min(this.state.height-1,this.state.cursor.y+1)}
-      });
-    } else if (e.key == 'ArrowUp') {
-      this.setState({
-        cursor: {...this.state.cursor, y:Math.max(0,this.state.cursor.y-1)}
-      });
-    } else if (e.key == 'PageUp') {
-      this.setState({
-        cursor: {...this.state.cursor, z:Math.min(this.state.depth-1,this.state.cursor.z+1)}
-      });
-    } else if (e.key == 'PageDown') {
-      this.setState({
-        cursor: {...this.state.cursor, z:Math.max(0,this.state.cursor.z-1)}
-      });
+    } else if (e.code == 'Delete' || e.key == 'Backspace') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      this.setState({tiles});
+    } else if (e.code == 'KeyQ') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      tiles[cursor.z][cursor.y][cursor.x] = {
+        color: 'W',
+        on: false,
+        walkable: true,
+        uses: 0,
+      };
+      this.setState({tiles});
+    } else if (e.code == 'KeyW') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      tiles[cursor.z][cursor.y][cursor.x] = {
+        color: 'R',
+        walkable: true,
+        uses: 0,
+      };
+      this.setState({tiles});
+    } else if (e.code == 'KeyE') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      tiles[cursor.z][cursor.y][cursor.x] = {
+        color: 'B',
+        walkable: true,
+        uses: 0,
+      };
+      this.setState({tiles});
+    } else if (e.code == 'KeyR') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      tiles[cursor.z][cursor.y][cursor.x] = {
+        color: 'G',
+        walkable: true,
+        direction: 'R',
+        uses: 0,
+      };
+      this.setState({tiles});
+    } else if (e.code == 'KeyT') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      tiles[cursor.z][cursor.y][cursor.x] = {
+        color: 'Y',
+        charge: '+',
+        walkable: true,
+        uses: 0,
+      };
+      this.setState({tiles});
+    } else if (e.code == 'KeyY') {
+      const tiles = clone(this.state.tiles);
+      deleteTile(tiles, cursor);
+      tiles[cursor.z][cursor.y][cursor.x] = {
+        color: 'O',
+        walkable: true,
+        uses: 0,
+      };
+      this.setState({tiles});
+    } else if (e.code == 'KeyU') {
+      const tiles = clone(this.state.tiles);
+      if (cursor.z < this.state.depth-1) {
+        deleteTile(tiles, cursor);
+        tiles[cursor.z][cursor.y][cursor.x] = {
+          color: 'S',
+          walkable: true,
+          uses: 0,
+          direction: 'U',
+        };
+        tiles[cursor.z+1][cursor.y][cursor.x] = {
+          color: 'S',
+          walkable: true,
+          uses: 0,
+          direction: 'D',
+        };
+      } else if (cursor.z == this.state.depth-1 && this.state.depth > 1) {
+        deleteTile(tiles, cursor);
+        tiles[cursor.z][cursor.y][cursor.x] = {
+          color: 'S',
+          walkable: true,
+          uses: 0,
+          direction: 'D',
+        };
+        tiles[cursor.z-1][cursor.y][cursor.x] = {
+          color: 'S',
+          walkable: true,
+          uses: 0,
+          direction: 'U',
+        };
+      }
+      this.setState({tiles});
+    } else if (e.code == 'Space') {
+      const player = clone(this.state.player);
+      player.x = cursor.x;
+      player.y = cursor.y;
+      player.z = cursor.z;
+      this.setState({player});
     }
     console.log(e);
   };
@@ -101,7 +261,9 @@ class EditorGui extends React.Component {
           }
         }
       }
-      this.setState({tiles});
+      const cursor = clone(this.state.cursor);
+      cursor.x = Math.min(cursor.x, e.target.value-1);
+      this.setState({tiles, cursor});
     }
   };
 
@@ -119,7 +281,9 @@ class EditorGui extends React.Component {
           tiles[z].push(row);
         }
       }
-      this.setState({tiles});
+      const cursor = clone(this.state.cursor);
+      cursor.y = Math.min(cursor.y, e.target.value-1);
+      this.setState({tiles, cursor});
     }
   };
 
@@ -139,7 +303,9 @@ class EditorGui extends React.Component {
         }
         tiles.push(plane);
       }
-      this.setState({tiles});
+      const cursor = clone(this.state.cursor);
+      cursor.z = Math.min(cursor.z, e.target.value-1);
+      this.setState({tiles, cursor});
     }
   };
 }
