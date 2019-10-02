@@ -202,7 +202,7 @@ class EditorGui extends React.Component {
         tiles[cursor.z][cursor.y][cursor.x] = {
           color: 'S',
           walkable: true,
-          uses: 0,
+          uses: 1,
           direction: 'U',
         };
         tiles[cursor.z+1][cursor.y][cursor.x] = {
@@ -249,15 +249,25 @@ class EditorGui extends React.Component {
         <button onClick={this.shareState}>Share</button>
       </div>
       <div>
-        Mode: {mode == 'edit' ? "Edit" : "Play"}
+        Mode: <button onClick={this.switchMode}>{mode == 'edit' ? "Edit" : "Play"}</button>
       </div>
-      <form>
+      {mode == 'edit' ?
+      (<form>
         <button type="submit" disabled style={{display: 'none'}} aria-hidden="true"></button>
         <input type="number" min="1" max="9" onChange={this.updateWidth} value={width}/>
         <input type="number" min="1" max="9" onChange={this.updateHeight} value={height}/>
         <input type="number" min="1" max="9" onChange={this.updateDepth} value={depth}/>
-      </form>
+      </form>)
+      : null}
     </div>;
+  }
+
+  switchMode = () => {
+    if (this.state.mode == 'edit') {
+      this.setState({mode: 'play'});
+    } else {
+      this.setState({mode: 'edit'});
+    }
   }
 
   shareState = () => {

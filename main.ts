@@ -119,7 +119,7 @@ function drawTile(tile: Tile, x: number, y: number) {
     tempContext.textBaseline='middle';
     tempContext.textAlign='center';
     tempContext.fillText(tile.charge, (x+0.35)*GRID_SIZE,(y+0.65)*GRID_SIZE);
-  } else if (tile.color == 'S') {
+  } else if (tile.color == 'S' && tile.uses > 0) {
     tempContext.font = `${0.3*GRID_SIZE}px sans-serif`;
     tempContext.fillStyle = color;
     tempContext.textBaseline='middle';
