@@ -49,36 +49,50 @@ function act(state) {
     }
     push(state,x,y,player.z,-dx,-dy,0);
     tiles[player.z][y][x] = currentTile;
-    
-    /*const otherTile = tiles[player.z][y][x];
-    if (otherTile && otherTile.color == 'S') {
-      var dx = -d[currentTile.direction][0];
-      var dy = -d[currentTile.direction][1];
-      var xx = player.x; 
-      var yy = player.y; 
-      var zz = otherTile.direction == 'U' ? (player.z + 1) : (player.z-1);
-      var hasEmpty = false;
-      while (xx >= 0 && xx < state.width && yy >= 0 && yy < state.height) {
-        if (tiles[zz][yy][xx] == null) {
-          hasEmpty = true;
-          break;
-        }
-        xx += dx;
-        yy += dy;
-      } 
-      if (!hasEmpty) return;
-      while (xx != x || yy != y) {
-        tiles[zz][yy][xx] = tiles[zz][yy-dy][xx-dx];
-        xx -= dx;
-        yy -= dy;
-      }
-      tiles[zz][yy][xx] = null;
-    }
-    currentTile.uses -= 1;
-    tiles[player.z][player.y][player.x] = otherTile;
-    tiles[player.z][y][x] = currentTile;*/
     player.x = x;
     player.y = y;
+    currentTile.uses -= 1;
+  } else if (currentTile.color == 'Y') {
+    currentTile.stuck = true;
+    // This is a slow O(n^2) implementation, n = # of tiles
+    while(true) {
+      const tiles = [];
+      for (let z = 0; z < state.depth; z++) {
+        for (let y = 0; y < state.height; y++) {
+          for (let x = 0; x < state.width; x++) {
+            const t = state.tiles[z][y][x];
+            if (t != null && t.color == 'Y' && ((x==player.x)+(y==player.y)+(z==player.z)) == 2) {
+              tiles.push([t,x,y,z,Math.abs(x-player.x)+Math.abs(y-player.y)+Math.abs(z-player.z)]);
+            }
+          }
+        }
+      }
+      tiles.sort((t1, t2) => t1[4]-t2[4]);
+      const tile = tiles.find(t => !t[0].yellowDone);
+      if (tile == null) {
+        for (const t of tiles) {
+          delete t[0].yellowDone;
+        }
+        break;
+      }
+      const [t,x,y,z] = tile;
+      if (t.charge == currentTile.charge) {
+        // repel
+        const dx = Math.sign(x-player.x);
+        const dy = Math.sign(y-player.y);
+        const dz = Math.sign(z-player.z);
+        if (canPush(state,x,y,z,dx,dy,dz)) push(state,x,y,z,dx,dy,dz);
+      } else {
+        // attract
+        const dx = Math.sign(player.x-x);
+        const dy = Math.sign(player.y-y);
+        const dz = Math.sign(player.z-z);
+        if (canPush(state,x,y,z,dx,dy,dz)) push(state,x,y,z,dx,dy,dz);
+      }
+      t.yellowDone = true;
+    }
+    delete currentTile.stuck;
+    currentTile.charge = currentTile.charge == '-' ? '+' : '-';
     currentTile.uses -= 1;
   }
   return state;
