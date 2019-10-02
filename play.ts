@@ -1,9 +1,9 @@
-import {clone} from 'main';
+import {clone} from './main';
 
 function play(state, input: 'left' | 'up' | 'right' | 'down' | 'act') {
   const nextState = clone(state);
   if (input == 'act') {
-    act(nextState);
+    return act(nextState);
   }
 }
 
@@ -27,6 +27,8 @@ function act(state) {
     player.blueUses += 1;
   } else if (currentTile.color == 'S') {
     currentTile.uses -= 1;
+    const otherTile = tiles[player.z + (currentTile.direction == 'U' ? 1 : -1)][player.y][player.x];
+    otherTile.uses -= 1;
     if (currentTile.direction == 'U') {
       player.z += 1;
     } else {
@@ -41,10 +43,10 @@ function act(state) {
     const otherTile = tiles[player.z][y][x];
     if (otherTile && otherTile.color == 'S') {
       var dx = -d[currentTile.direction][0];
-      var dy = -d[currentTile.direction[1];
+      var dy = -d[currentTile.direction][1];
       var xx = player.x; 
       var yy = player.y; 
-      var zz = otherTile.direction == 'U' ? player.z + 1 : player.z-1;
+      var zz = otherTile.direction == 'U' ? (player.z + 1) : (player.z-1);
       var hasEmpty = false;
       while (xx >= 0 && xx < state.width && yy >= 0 && yy < state.height) {
         if (tiles[zz][yy][xx] == null) {
@@ -55,14 +57,19 @@ function act(state) {
         yy += dy;
       } 
       if (!hasEmpty) return;
-      while (xx != (x-dx) || yy != (y-dy)) {
+      while (xx != x || yy != y) {
         tiles[zz][yy][xx] = tiles[zz][yy-dy][xx-dx];
         xx -= dx;
         yy -= dy;
       }
+      tiles[zz][yy][xx] = null;
     }
     currentTile.uses -= 1;
     tiles[player.z][player.y][player.x] = otherTile;
     tiles[player.z][y][x] = currentTile;
+    player.x = x;
+    player.y = y;
   }
+  return state;
 }
+export {play};

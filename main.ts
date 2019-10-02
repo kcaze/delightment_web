@@ -119,7 +119,7 @@ function drawTile(tile: Tile, x: number, y: number) {
     tempContext.textBaseline='middle';
     tempContext.textAlign='center';
     tempContext.fillText(tile.charge, (x+0.35)*GRID_SIZE,(y+0.65)*GRID_SIZE);
-  } else if (tile.color == 'S' && tile.uses > 0) {
+  } else if (tile.color == 'S') {
     tempContext.font = `${0.3*GRID_SIZE}px sans-serif`;
     tempContext.fillStyle = color;
     tempContext.textBaseline='middle';
@@ -211,7 +211,7 @@ function drawState(canvas, state: State) {
         }
       }
     }
-    if (z == state.cursor.z) {
+    if (z == state.cursor.z && state.mode == 'edit') {
       drawCursor(state.cursor);
     }
     drawLayer(context,z,state.mode == 'edit' ? state.cursor.z : state.player.z,state.mode == 'edit');
@@ -262,8 +262,12 @@ function generateDefaultState(): State {
 
 const state = generateDefaultState();
 
+function clone(obj: Object): Object {
+  return JSON.parse(JSON.stringify(obj));
+}
+
 export {
   generateDefaultState,
-  cloneState,
+  clone,
   drawState
 };

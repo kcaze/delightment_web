@@ -1,10 +1,8 @@
 import * as React from 'react';
 import ReactDOM from 'react-dom';
-import {generateDefaultState, drawState} from './main';
+import {generateDefaultState, clone, drawState} from './main';
+import {play} from './play';
 
-function clone(obj: Object): Object {
-  return JSON.parse(JSON.stringify(obj));
-}
 
 function deleteTile(tiles, cursor) {
   const tile = tiles[cursor.z][cursor.y][cursor.x];
@@ -37,12 +35,23 @@ class EditorGui extends React.Component {
   }
 
   onKeyDown = (e) => {
-    if (this.state.mode == 'edit') {
-      this.onEditKeyDown(e);
+    if (e.code == 'Tab') {
+      e.preventDefault();
+      this.switchMode();
     } else {
-      this.onPlayKeyDown(e);
+      if (this.state.mode == 'edit') {
+        this.onEditKeyDown(e);
+      } else {
+        this.onPlayKeyDown(e);
+      }
     }
   };
+
+  onPlayKeyDown = (e) => {
+    if (e.code == 'Space') {
+      this.setState(play(this.state, 'act'));
+    }
+  }
 
   onEditKeyDown = (e) => {
     const {cursor} = this.state;
@@ -94,8 +103,12 @@ class EditorGui extends React.Component {
       } else if (e.shiftKey) {
         const tiles = clone(this.state.tiles);
         const tile = tiles[cursor.z][cursor.y][cursor.x];
-        if (tiles[cursor.z][cursor.y][cursor.x] != null)
+        if (tile != null)
           tile.uses = Math.max(0, tile.uses-1);
+        if (tile.color == 'S') {
+          const otherTile = tiles[cursor.z + (tile.direction == 'U' ? 1 : -1)][cursor.y][cursor.x];
+          otherTile.uses = Math.max(0, otherTile.uses-1);
+        }
         this.setState({tiles});
       } else {
         this.setState({
@@ -118,8 +131,12 @@ class EditorGui extends React.Component {
       } else if (e.shiftKey) {
         const tiles = clone(this.state.tiles);
         const tile = tiles[cursor.z][cursor.y][cursor.x];
-        if (tiles[cursor.z][cursor.y][cursor.x] != null)
+        if (tile != null)
           tile.uses = tile.uses+1;
+        if (tile.color == 'S') {
+          const otherTile = tiles[cursor.z + (tile.direction == 'U' ? 1 : -1)][cursor.y][cursor.x];
+          otherTile.uses = otherTile.uses+1;
+        }
         this.setState({tiles});
       } else {
         this.setState({
@@ -208,7 +225,7 @@ class EditorGui extends React.Component {
         tiles[cursor.z+1][cursor.y][cursor.x] = {
           color: 'S',
           walkable: true,
-          uses: 0,
+          uses: 1,
           direction: 'D',
         };
       } else if (cursor.z == this.state.depth-1 && this.state.depth > 1) {
@@ -216,13 +233,13 @@ class EditorGui extends React.Component {
         tiles[cursor.z][cursor.y][cursor.x] = {
           color: 'S',
           walkable: true,
-          uses: 0,
+          uses: 1,
           direction: 'D',
         };
         tiles[cursor.z-1][cursor.y][cursor.x] = {
           color: 'S',
           walkable: true,
-          uses: 0,
+          uses: 1,
           direction: 'U',
         };
       }
@@ -237,9 +254,6 @@ class EditorGui extends React.Component {
     console.log(e);
   };
 
-  onPlayKeyDown = (e) => {
-  };
-  
   render() {
     const {width, height, depth, mode} = this.state;
     return <div>
@@ -268,6 +282,7 @@ class EditorGui extends React.Component {
     } else {
       this.setState({mode: 'edit'});
     }
+    this.refs.canvas.focus();
   }
 
   shareState = () => {
