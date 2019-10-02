@@ -36,13 +36,12 @@ class EditorGui extends React.Component {
 
   onKeyDown = (e) => {
     if (e.code == 'Tab') {
-      e.preventDefault();
       this.switchMode();
     } else {
       if (this.state.mode == 'edit') {
-        this.onEditKeyDown(e);
+        if (this.onEditKeyDown(e)) e.preventDefault();
       } else {
-        this.onPlayKeyDown(e);
+        if (this.onPlayKeyDown(e)) e.preventDefault();
       }
     }
   };
@@ -50,7 +49,10 @@ class EditorGui extends React.Component {
   onPlayKeyDown = (e) => {
     if (e.code == 'Space') {
       this.setState(play(this.state, 'act'));
+    } else {
+      return false;
     }
+    return true;
   }
 
   onEditKeyDown = (e) => {
@@ -250,8 +252,10 @@ class EditorGui extends React.Component {
       player.y = cursor.y;
       player.z = cursor.z;
       this.setState({player});
+    } else {
+      return false;
     }
-    console.log(e);
+    return true;
   };
 
   render() {

@@ -103,10 +103,10 @@ function drawTile(tile: Tile, x: number, y: number) {
   }
   if (tile.color == 'G') {
     const arrows = {
-      'U': '🡅',
-      'D': '🡇',
-      'R': '🡆',
-      'L': '🡄',
+      'U': '\u2191',
+      'D': '\u2193',
+      'R': '\u2192',
+      'L': '\u2190',
     }
     tempContext.font = `${GRID_SIZE/3}px sans-serif`;
     tempContext.fillStyle = color
