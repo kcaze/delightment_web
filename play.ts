@@ -94,6 +94,9 @@ function act(state) {
     delete currentTile.stuck;
     currentTile.charge = currentTile.charge == '-' ? '+' : '-';
     currentTile.uses -= 1;
+  } else if (currentTile.color == 'S') {
+    currentTile.uses -= 1; 
+    state.player.z += currentTile.direction == 'U' ? 1 : -1
   }
   return state;
 }
