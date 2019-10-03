@@ -379,7 +379,7 @@ class EditorGui extends React.Component {
   }
 
   shareState = () => {
-    const encodedState = lzstring.compressToBase64(JSON.stringify({...editorState, mode: 'edit', undoStack: undoStack, editorState}));
+    const encodedState = lzstring.compressToBase64(JSON.stringify({...editorState, mode: 'play', undoStack: undoStack, editorState}));
     navigator.clipboard.writeText(`https://${location.hostname}${location.pathname}#${encodedState}`);
   };
 
