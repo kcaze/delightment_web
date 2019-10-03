@@ -263,7 +263,11 @@ function generateDefaultState(): State {
 const state = generateDefaultState();
 
 function clone(obj: Object): Object {
-  return JSON.parse(JSON.stringify(obj));
+  try {
+    return JSON.parse(JSON.stringify(obj));
+  } catch (e) {
+    console.log("Error cloning", JSON.stringify(obj));
+  }
 }
 
 export {

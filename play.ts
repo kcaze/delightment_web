@@ -98,7 +98,7 @@ function act(state) {
   const {tiles, player} = state;
   const currentTile = tiles[player.z][player.y][player.x];
   if (currentTile.uses == 0) {
-    return;
+    return state;
   }
   if (currentTile.color == 'R') {
     currentTile.uses -= 1;
@@ -127,12 +127,12 @@ function act(state) {
     const dy = d[currentTile.direction][1];
     const x = player.x + dx;
     const y = player.y + dy;
-    if (x < 0 || x >= state.width) return;
-    if (y < 0 || y >= state.height) return;
+    if (x < 0 || x >= state.width) return state;
+    if (y < 0 || y >= state.height) return state;
     tiles[player.z][player.y][player.x] = null;
     if (!canPush(state,x,y,player.z,-dx,-dy,0)) {
       tiles[player.z][player.y][player.x] = currentTile;
-      return;
+      return state;
     }
     push(state,x,y,player.z,-dx,-dy,0);
     tiles[player.z][y][x] = currentTile;
