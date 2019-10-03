@@ -18,6 +18,16 @@ function deleteTile(tiles, cursor) {
   }
 }
 
+function replay(stack) {
+  let state = clone(editorState);
+  for (const action of stack) {
+    if (action == 'reset') state = clone(editorState);
+    else state = play(state, action);
+  }
+  state.mode = 'play';
+  return state;
+}
+
 class EditorGui extends React.Component {
   constructor() {
     this.state = generateDefaultState();
@@ -55,19 +65,37 @@ class EditorGui extends React.Component {
   };
 
   onPlayKeyDown = (e) => {
+    let action;
     if (e.code == 'Space') {
-      this.setState(play(this.state, 'act'));
+      action = 'act';
     } else if (e.code == 'ArrowRight') {
-      this.setState(play(this.state, 'right'));
+      action = 'right';
     } else if (e.code == 'ArrowLeft') {
-      this.setState(play(this.state, 'left'));
+      action = 'left';
     } else if (e.code == 'ArrowDown') {
-      this.setState(play(this.state, 'down'));
+      action = 'down';
     } else if (e.code == 'ArrowUp') {
-      this.setState(play(this.state, 'up'));
+      action = 'up';
+    } else if (e.code == 'KeyR') {
+      const newState = clone(editorState);
+      newState.mode = 'play';
+      if (JSON.stringify(newState) !== JSON.stringify(this.state)) {
+        undoStack.push('reset'); 
+      }
+      this.setState(newState);
+      return true;
+    } else if (e.code == 'KeyZ') {
+      undoStack.pop();
+      this.setState(replay(undoStack));
+      return true;
     } else {
       return false;
     }
+    const newState = play(this.state, action);
+    if (JSON.stringify(newState) !== JSON.stringify(this.state)) {
+      undoStack.push(action);
+    }
+    this.setState(newState);
     return true;
   }
 
@@ -293,6 +321,11 @@ class EditorGui extends React.Component {
         <input type="number" min="1" max="9" onChange={this.updateDepth} value={depth}/>
       </form>)
       : null}
+      <div>
+        Undo stack:<ul>
+          {undoStack.map(action => (<li>{action}</li>))}
+        </ul>
+      </div>
     </div>;
   }
 
