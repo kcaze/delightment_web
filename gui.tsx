@@ -33,10 +33,15 @@ class EditorGui extends React.Component {
   constructor() {
     try {
       this.state = JSON.parse(lzstring.decompressFromBase64(location.hash.slice(1)));
+      undoStack = this.state.undoStack;
+      editorState = this.state.editorState;
+      delete this.state.editorState;
+      delete this.state.undoStack;
+      console.log(editorState);
     } catch (e) {
       this.state = generateDefaultState();
+      editorState = clone(this.state);
     }
-    editorState = clone(this.state);
     document.addEventListener('keydown', this.onKeyDown);
   }
 
@@ -50,7 +55,7 @@ class EditorGui extends React.Component {
       editorState = clone(this.state);
       undoStack = [];
     }
-    const encodedState = lzstring.compressToBase64(JSON.stringify(this.state));
+    const encodedState = lzstring.compressToBase64(JSON.stringify({...this.state, undoStack, editorState}));
     parent.location.hash = encodedState;
   }
 
@@ -59,7 +64,7 @@ class EditorGui extends React.Component {
   }
 
   onKeyDown = (e) => {
-    if (e.code == 'Tab') {
+    if (e.code == 'Tab' && !e.ctrlKey && !e.shiftKey) {
       this.switchMode();
       e.preventDefault();
     } else {
@@ -312,6 +317,18 @@ class EditorGui extends React.Component {
   render() {
     const {width, height, depth, mode} = this.state;
     return <div>
+      {mode == 'play' ? (<p><b>Play mode instructions:</b>Press left,down,up,right to move. Press space to use a tile. Press z to undo and r to restart.</p>) :
+      (<p><b>Edit mode instructions:</b>
+      The input fields at the bottom are used to change the dimensions of the level.
+      Press left,down,up,right,page up, page down to move the cursor.
+      Press space to place the player's starting position on the cursor location.
+      Press Q,W,E,R,T,Y,U to put down a tile of the appropriate color on the cursor location.
+      Press backspace or delete to clear the tile on the cursor location.
+      Hold shift and press up or down to increment/decrement the tile use on the cursor location. 
+      Hold ctrl and press left,down,up,right to modify tile specific properties e.g. the direction on green tiles).
+      Hold ctrl and shift and press up or down to increment/decrement the player's initial blue uses.
+      Press tab to switch between 'edit' and 'play' mode.
+      </p>)}
       <canvas ref="canvas" width="640" height="480"></canvas>
 
       <div>
@@ -346,7 +363,7 @@ class EditorGui extends React.Component {
   }
 
   shareState = () => {
-    const encodedState = lzstring.compressToBase64(JSON.stringify({...editorState, mode: 'edit'}));
+    const encodedState = lzstring.compressToBase64(JSON.stringify({...editorState, mode: 'edit', undoStack: undoStack, editorState}));
     navigator.clipboard.writeText(`https://${location.hostname}${location.pathname}#${encodedState}`);
   };
 
