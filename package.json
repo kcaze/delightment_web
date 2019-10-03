@@ -6,6 +6,7 @@
     "typescript": "^3.6.3"
   },
   "dependencies": {
+    "lz-string": "^1.4.4",
     "main": "^1000.0.1",
     "react": "^16.10.1",
     "react-dom": "^16.10.1"

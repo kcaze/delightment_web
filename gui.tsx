@@ -2,6 +2,7 @@ import * as React from 'react';
 import ReactDOM from 'react-dom';
 import {generateDefaultState, clone, drawState} from './main';
 import {play} from './play';
+import lzstring from 'lz-string';
 
 let editorState = null;
 let undoStack = [];
@@ -30,7 +31,11 @@ function replay(stack) {
 
 class EditorGui extends React.Component {
   constructor() {
-    this.state = generateDefaultState();
+    try {
+      this.state = JSON.parse(lzstring.decompressFromBase64(location.hash.slice(1)));
+    } catch (e) {
+      this.state = generateDefaultState();
+    }
     editorState = clone(this.state);
     document.addEventListener('keydown', this.onKeyDown);
   }
@@ -45,6 +50,8 @@ class EditorGui extends React.Component {
       editorState = clone(this.state);
       undoStack = [];
     }
+    const encodedState = lzstring.compressToBase64(JSON.stringify(this.state));
+    parent.location.hash = encodedState;
   }
 
   updateCanvas() {
@@ -339,8 +346,8 @@ class EditorGui extends React.Component {
   }
 
   shareState = () => {
-    const encodedState = btoa(JSON.stringify(this.state));
-    console.log(encodedState);
+    const encodedState = lzstring.compressToBase64(JSON.stringify({...editorState, mode: 'edit'}));
+    navigator.clipboard.writeText(`https://${location.hostname}${location.pathname}#${encodedState}`);
   };
 
   updateWidth = (e) => {
