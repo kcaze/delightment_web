@@ -348,6 +348,7 @@ class EditorGui extends React.Component {
 
       <div>
         <button onClick={this.shareState}>Share</button>
+        <button onClick={() => this.setState(generateDefaultState())}>New Puzzle</button>
       </div>
       <div>
         Mode: <button onClick={this.switchMode}>{mode == 'edit' ? "Edit" : "Play"}</button>
