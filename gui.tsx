@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import {generateDefaultState, clone, drawState} from './main';
 import {play} from './play';
 
+let editorState = null;
+let undoStack = [];
 
 function deleteTile(tiles, cursor) {
   const tile = tiles[cursor.z][cursor.y][cursor.x];
@@ -19,6 +21,7 @@ function deleteTile(tiles, cursor) {
 class EditorGui extends React.Component {
   constructor() {
     this.state = generateDefaultState();
+    editorState = clone(this.state);
     document.addEventListener('keydown', this.onKeyDown);
   }
 
@@ -28,6 +31,10 @@ class EditorGui extends React.Component {
 
   componentDidUpdate() {
     this.updateCanvas(); 
+    if (this.state.mode == 'edit') {
+      editorState = clone(this.state);
+      undoStack = [];
+    }
   }
 
   updateCanvas() {
@@ -293,7 +300,7 @@ class EditorGui extends React.Component {
     if (this.state.mode == 'edit') {
       this.setState({mode: 'play'});
     } else {
-      this.setState({mode: 'edit'});
+      this.setState(clone(editorState));
     }
     this.refs.canvas.focus();
   }

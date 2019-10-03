@@ -57,7 +57,39 @@ function move(state, [dx,dy]) {
     }
     return state;
   } else {
-    
+    let xx = player.x; 
+    let yy = player.y; 
+    let x = player.x + dx;
+    let y = player.y + dy;
+    if (x < 0 || x >= state.width || y < 0 || y >= state.height) {
+      return state;
+    }
+    let currentTile = tiles[player.z][player.y][player.x];
+    let tile = tiles[player.z][y][x];
+    if (tile == null && (currentTile.color != 'O' || (currentTile.color == 'O' && currentTile.uses == 0))) {
+      return state;
+    }
+    while (true) {
+      if (tile == null && currentTile.color == 'O' && currentTile.uses > 0) {
+        tiles[player.z][y][x] = {color: 'O', uses: currentTile.uses-1, walkable: true};
+        tiles[player.z][yy][xx].uses = 0;
+      }
+      xx += dx;
+      yy += dy;
+      x += dx;
+      y += dy;
+      if (x < 0 || x >= state.width || y < 0 || y >= state.height) {
+        break;
+      }
+      currentTile = tiles[player.z][yy][xx];
+      tile = tiles[player.z][y][x];
+      if (tile == null && (currentTile.color != 'O' || (currentTile.color == 'O' && currentTile.uses == 0))) {
+        break;
+      }
+    }
+    state.player.blueUses -= 1;
+    state.player.x = xx;
+    state.player.y = yy;
     return state;
   }
 }
