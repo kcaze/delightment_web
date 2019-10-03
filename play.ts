@@ -4,6 +4,61 @@ function play(state, input: 'left' | 'up' | 'right' | 'down' | 'act') {
   const nextState = clone(state);
   if (input == 'act') {
     return act(nextState);
+  } else {
+    const d = {'left':[-1,0],'up':[0,-1],'right':[1,0],'down':[0,1]};
+    return move(nextState, d[input]);
+  }
+}
+
+function move(state, [dx,dy]) {
+  const {player, tiles} = state;
+  if (player.blueUses == 0) {
+    const originalX = player.x;
+    const originalY = player.y;
+    const originalZ = player.z;
+    let createdOrange = false;
+    const x = player.x + dx;
+    const y = player.y + dy;
+    if (x < 0 || x >= state.width || y < 0 || y >= state.height) {
+      return state;
+    }
+    const currentTile = tiles[player.z][player.y][player.x];
+    let tile = tiles[player.z][y][x];
+    if (currentTile.color == 'O' && currentTile.uses > 0 && tile == null) {
+      tiles[player.z][y][x] = {
+        color: 'O',
+        walkable: true,
+        uses: currentTile.uses-1,
+      };
+      player.x = x;
+      player.y = y;
+      currentTile.uses = 0;
+      createdOrange = true;
+    } else if (tile == null || !tile.walkable) {
+      return state;
+    } else {
+      while (x+dx >= 0 && x+dx < state.width && y+dy >= 0 && y+dy < state.height && tiles[player.z][y+dy][x+dx] != null && tiles[player.z][y+dy][x+dx].walkable && tiles[player.z][y][x].color == 'B') {
+        x += dx;
+        y += dy;
+      }
+      player.x = x;
+      player.y = y;
+    }
+    if (currentTile.color == 'G') {
+      currentTile.direction = dx < 0 ? 'R' : (dx > 0 ? 'L' : (dy > 0 ? 'U' : 'D'));
+    } else if (currentTile.color == 'W') {
+      currentTile.walkable = false; 
+    } else if (currentTile.color == 'O' && currentTile.uses == 0 && !createdOrange) {
+      tiles[originalZ][originalY][originalX] = null;
+    }
+    tile = tiles[player.z][y][x];
+    if (tile.color == 'W') {
+      tile.on = !tile.on;
+    }
+    return state;
+  } else {
+    
+    return state;
   }
 }
 
@@ -161,6 +216,7 @@ function push(state, x, y, z, dx, dy, dz) {
     state.tiles[z][y][x] = null;
   }
 }
+
 
 export {play};
 
