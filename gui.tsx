@@ -29,6 +29,17 @@ function replay(stack) {
   return state;
 }
 
+function didWin(state) {
+  for (const plane of state.tiles) {
+    for (const row of plane) {
+      for (const tile of row) {
+        if (tile && tile.color == 'W' && !tile.on) return false;
+      }
+    }
+  }
+  return true;
+}
+
 class EditorGui extends React.Component {
   constructor() {
     try {
@@ -54,6 +65,10 @@ class EditorGui extends React.Component {
     if (this.state.mode == 'edit') {
       editorState = clone(this.state);
       undoStack = [];
+    } else {
+      if (didWin(this.state)) {
+        window.alert('You solved it!');
+      }
     }
     const encodedState = lzstring.compressToBase64(JSON.stringify({...this.state, undoStack, editorState}));
     parent.location.hash = encodedState;
