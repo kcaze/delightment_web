@@ -177,7 +177,7 @@ class EditorGui extends React.Component {
         const tiles = clone(this.state.tiles);
         const tile = tiles[cursor.z][cursor.y][cursor.x];
         if (tile != null)
-          tile.uses = Math.max(0, tile.uses-1);
+          tile.uses = (tile.uses == 0 || tile.uses == Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : tile.uses-1;
         if (tile.color == 'S') {
           const otherTile = tiles[cursor.z + (tile.direction == 'U' ? 1 : -1)][cursor.y][cursor.x];
           otherTile.uses = Math.max(0, otherTile.uses-1);
@@ -205,7 +205,7 @@ class EditorGui extends React.Component {
         const tiles = clone(this.state.tiles);
         const tile = tiles[cursor.z][cursor.y][cursor.x];
         if (tile != null)
-          tile.uses = tile.uses+1;
+          tile.uses = tile.uses == Number.MAX_SAFE_INTEGER ? 0 : tile.uses+1;
         if (tile.color == 'S') {
           const otherTile = tiles[cursor.z + (tile.direction == 'U' ? 1 : -1)][cursor.y][cursor.x];
           otherTile.uses = otherTile.uses+1;

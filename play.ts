@@ -83,13 +83,19 @@ function move(state, [dx,dy]) {
       }
       currentTile = tiles[player.z][yy][xx];
       tile = tiles[player.z][y][x];
-      if (tile == null && (currentTile.color != 'O' || (currentTile.color == 'O' && currentTile.uses == 0))) {
+      if ((tile == null && (currentTile.color != 'O' || (currentTile.color == 'O' && currentTile.uses == 0))) || (tile != null && !tile.walkable)) {
         break;
       }
     }
     state.player.blueUses -= 1;
     state.player.x = xx;
     state.player.y = yy;
+    if (state.player.blueUses == 0) {
+      tile = tiles[player.z][player.y][player.x];
+      if (tile.color == 'W') {
+        tile.on = !tile.on;
+      }
+    }
     return state;
   }
 }

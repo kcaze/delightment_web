@@ -64,6 +64,7 @@ type State = {
   height: number,
   depth: number,
   player: Player,
+  currentZ: number,
 };
 
 
@@ -131,7 +132,7 @@ function drawTile(tile: Tile, x: number, y: number) {
     tempContext.fillStyle = color;
     tempContext.textBaseline='middle';
     tempContext.textAlign='center';
-    tempContext.fillText(tile.uses.toString(), (x+0.70)*GRID_SIZE,(y+0.70)*GRID_SIZE);
+    tempContext.fillText(tile.uses > Number.MAX_SAFE_INTEGER/2 ? '\u221e' : tile.uses.toString(), (x+0.70)*GRID_SIZE,(y+0.70)*GRID_SIZE);
   }
 }
 
@@ -182,8 +183,8 @@ function drawLayer(context, z: number, currentDepth: number, isEditMode) {
   context.save();
   if (!isEditMode) {
     context.globalAlpha = z < currentDepth ? 0.15 : (z > currentDepth ? 0.3 : 1.0);
-    context.transform(1,0,-0.3,1,225,100);
-    context.drawImage(tempCanvas,-0.3*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
+    context.transform(1,0,0,1,150,100);
+    context.drawImage(tempCanvas,0.5*(z-currentDepth)*GRID_SIZE*0.75,-(z-currentDepth)*GRID_SIZE*0.75);
   } else {
     context.globalAlpha = z != currentDepth ? 0.1 : 1.0);
     context.transform(1,0,0,1,150,100);
